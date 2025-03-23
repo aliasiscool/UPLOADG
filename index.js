@@ -1,85 +1,66 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const { google } = require("googleapis");
-const fs = require("fs");
+const express = require('express');
+const bodyParser = require('body-parser');
+const { google } = require('googleapis');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 10000;
+const PORT = process.env.PORT || 10000;
 
-app.use(cors());
 app.use(bodyParser.json());
 
-// Load service account key
-const auth = new google.auth.GoogleAuth({
-  keyFile: "service-account.json",
-  scopes: ["https://www.googleapis.com/auth/documents"],
-});
-
-app.post("/upload", async (req, res) => {
+app.post('/upload', async (req, res) => {
   try {
     const { image_urls_combined } = req.body;
-
     if (!image_urls_combined) {
-      return res.status(400).json({ error: "Missing image_urls_combined" });
+      return res.status(400).json({ error: 'Missing image_urls_combined' });
     }
 
-    const imageUrls = image_urls_combined.split(",").map(url => url.trim());
+    // Load service account credentials from local file
+    const credentialsPath = path.join(__dirname, 'service-account.json');
+    const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf-8'));
 
-    const authClient = await auth.getClient();
-    const docs = google.docs({ version: "v1", auth: authClient });
-
-    // Create a new document
-    const doc = await docs.documents.create({
-      requestBody: {
-        title: "Uploaded Images",
-      },
+    const auth = new google.auth.GoogleAuth({
+      credentials,
+      scopes: ['https://www.googleapis.com/auth/documents']
     });
 
-    const documentId = doc.data.documentId;
+    const client = await auth.getClient();
+    const docs = google.docs({ version: 'v1', auth: client });
 
-    // Build the requests array with embedded images
-    const requests = [];
+    const imageUrls = image_urls_combined.split(',').map(url => url.trim());
 
-    for (let url of imageUrls) {
-      requests.push(
-        {
-          insertText: {
-            location: { index: 1 },
-            text: "\n\n",
-          },
-        },
-        {
-          insertInlineImage: {
-            uri: url,
-            location: {
-              index: 1,
-            },
-            objectSize: {
-              height: { magnitude: 300, unit: "PT" },
-              width: { magnitude: 300, unit: "PT" },
-            },
-          },
+    const requests = imageUrls.map(url => ({
+      insertInlineImage: {
+        uri: url,
+        location: { index: 1 },
+        objectSize: {
+          height: { magnitude: 300, unit: 'PT' },
+          width: { magnitude: 300, unit: 'PT' }
         }
-      );
-    }
+      }
+    }));
+
+    const doc = await docs.documents.create({ requestBody: { title: 'Uploaded Images' } });
 
     await docs.documents.batchUpdate({
-      documentId,
-      requestBody: { requests },
+      documentId: doc.data.documentId,
+      requestBody: { requests }
     });
 
-    const docLink = `https://docs.google.com/document/d/${documentId}/edit`;
+    const publicUrl = `https://docs.google.com/document/d/${doc.data.documentId}/edit`;
 
-    res.json({ success: true, docLink });
+    res.json({ success: true, url: publicUrl });
+
   } catch (err) {
-    console.error("❌ Error in /upload:", err.message);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error('❌ Error in /upload:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server running on port ${port}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
+
 
 
