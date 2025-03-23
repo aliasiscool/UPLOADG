@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "voiceflow-image-uploader",
+  "private_key_id": "956c95c81721d470a46175b0be67a1ac54421330",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDk55WhTh2zrV6Q\nui0T3whLNrVw/jbGmXSX3HafKTI+M08wRVlwz7g4QqwRdMPE/Uc8QAe6U/2WuyD9\nGz1ju0Np06N0FBWsVo9xglp3Z0uBunVPWgauw16C8aKFHTLurSFqviQViDvYRQtl\nLpRl44gOijbzDL9eIWvn6vaEu6nU3pKnSRg+mSOhY0UT1No01Ekprv/PkcTuJVqz\nQezpR8DD0rE+YcCcy+PH1uQuUBK97Sd7FdIhnclVEEQkzCOU9wrimBhTCY7lHoKD\nsziqXsygUPCqJx8uw8IWRZ/rj4j2ZQpro3sSS43axequxE47CDkNesXaxR0uG2st\nFLL8JnSrAgMBAAECggEABv1c8x+aUvtyR2N7L0yNYxT4/Jazcxdwf5dtz9v6lGFA\ntvqgvPJUb8ApcCCepPJ1YGbPVZmgkeyFso57lQLWdiU0rCPvQ+OIxP1aaD1kb6h5\nhVv8ZED2+9lt2wUfO9NX9+IPSNEJWS54885n6nL3zp0N1hiHjdPh1aOCtfh9B4Qn\nLH/EdeICfRAvw8AENh+hb+zFT8KEDbRO/+nyCqtd319ITecfhlG4vCd6EnvhYeNJ\nPkRw5sY+FLYx1AThy/0gPgMMou6aLV1PuGEmDfzqdLi/v+VRL8Xji+bIUjVX8TGY\nxVC1DY+hYx041Vx1xVTyLJ54xddBSDUwu8w/M2Bl8QKBgQD+97kslIjkhXdp+em5\nNLbSjIlsU2b/FMs/KAuDNocnY4qHAHuxBOdkYRf5MScGNM0p1UKEnfXinpGFOarU\nfrrJyUjxhZOieQr8KNJ3y5S6shbDuEIlzl2YDz4kDxDL3cvaXwaTtHuLMXBSsf6+\nbpg3CnCkbVZmG1UnwpW+kgJkTQKBgQDl1Ni2zMxmUi0/JTQnBUCSC9m9EaeZQJ3R\nHXysjI2q4kH2t1hyRJVBTDaF1Qy34U52GzJuNaE9/OuDiOWD/KKQNuyricI6gsIu\nLbzhHXMt0COZzUY1+Z2q5gi8DeqVk2ma00SJ2IgMIocUxBBuXEj6Si9BRBWJcqgO\nLQS8sDEY1wKBgQDImUpdYreZY9Ch1ngmuOymFuAAFFZSlp+aHv1/zKTlPpG8yYqH\nqZ4MAcAE1MEpRt2r7heZk1XjaHKBaO+Yo+R94hm7vCZ9i9IytkNw8QEhKgBzGEMi\nz4wfmM6BPEEwxF4gfucDytnwl4MR7OzKEuU7WMFq/IMfbp2+3H9IIkQzeQKBgHvg\nqZ597H4KNREgAGg30IHnmUjrRya3SVj5R8XJTGKa6WsNj8KnbLtxVMH1/5DtA9ls\n91Wn2m0K8fZHx03I0eZhdFdRPTtEV12EkZXUxcwfr9Cqb/mPvYfrzTFvXs2YUwd8\ncCjMaSgBREXRF/okC8G8UpQfGmynPCXH5hG99fipAoGAT3t+ZSnQ6tGl7GRpBg3x\nFqz3ATjDw/qhCRJXhkBMdHx8ILXscLr70nHNME15iR3Dou+ebmv9He7EKUrPda3i\nteICXRNWc0H5MoiPCHDDrrJR8xfRWw7uyk2uecvu/6ldlsruL0hHe5JvQd4VOI1c\nzWTFYyDNgZTC2QOiyHANWqY=\n-----END PRIVATE KEY-----\n",
+  "client_email": "vf-image-uploader@voiceflow-image-uploader.iam.gserviceaccount.com",
+  "client_id": "112453777332038621010",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/vf-image-uploader%40voiceflow-image-uploader.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
