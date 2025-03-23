@@ -19,6 +19,9 @@ app.post('/upload', async (req, res) => {
     // Load service account credentials from local file
     const credentialsPath = path.join(__dirname, 'service-account.json');
     const credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf-8'));
+    console.log('🔍 Looking for credentials at:', credentialsPath);
+console.log('📂 Exists?', fs.existsSync(credentialsPath));
+
 
     const auth = new google.auth.GoogleAuth({
       credentials,
