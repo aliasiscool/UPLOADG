@@ -25,6 +25,8 @@ app.post('/upload', async (req, res) => {
       scopes: ['https://www.googleapis.com/auth/documents']
     });
     console.log('🕒 System time:', new Date().toISOString());
+    console.log(credentials.private_key);
+
 
 
     const client = await auth.getClient();
