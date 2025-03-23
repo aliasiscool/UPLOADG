@@ -1,93 +1,99 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const { google } = require('googleapis');
+const bodyParser = require('body-parser');
+const cors = require('cors');
 const fs = require('fs');
 
 const app = express();
+const port = process.env.PORT || 10000;
+
+app.use(cors());
 app.use(bodyParser.json());
 
-const SCOPES = ['https://www.googleapis.com/auth/documents', 'https://www.googleapis.com/auth/drive'];
-const KEYFILEPATH = './service-account.json';
-
-// Auth
 const auth = new google.auth.GoogleAuth({
-  keyFile: KEYFILEPATH,
-  scopes: SCOPES,
+  keyFile: 'service-account.json', // your service account JSON key
+  scopes: ['https://www.googleapis.com/auth/documents'],
 });
 
-// Endpoint to create doc with images
-app.post('/create-doc', async (req, res) => {
-  const { image_urls_combined } = req.body;
+const docs = google.docs({ version: 'v1', auth });
 
-  if (!image_urls_combined || image_urls_combined === 'No files uploaded') {
-    return res.status(400).json({ error: 'No image URLs provided' });
-  }
-
+app.post('/upload', async (req, res) => {
   try {
-    const authClient = await auth.getClient();
-    const docs = google.docs({ version: 'v1', auth: authClient });
-    const drive = google.drive({ version: 'v3', auth: authClient });
+    console.log('📥 Incoming request:', req.body);
 
-    // 1. Create empty doc
-    const docRes = await docs.documents.create({
+    const urlsRaw = req.body.image_urls_combined;
+    if (!urlsRaw || typeof urlsRaw !== 'string') {
+      return res.status(400).json({ error: 'Missing or invalid image_urls_combined field' });
+    }
+
+    const urls = urlsRaw.split(',').map(url => url.trim()).filter(Boolean);
+    if (!urls.length) {
+      return res.status(400).json({ error: 'No valid image URLs provided' });
+    }
+
+    const docTitle = `Uploaded Images (${new Date().toLocaleString()})`;
+
+    // Create the doc
+    const createRes = await docs.documents.create({
       requestBody: {
-        title: 'Uploaded Images from Voiceflow',
+        title: docTitle,
       },
     });
 
-    const docId = docRes.data.documentId;
+    const docId = createRes.data.documentId;
 
-    // 2. Convert comma-separated URLs to array
-    const imageUrls = image_urls_combined.split(',').map(url => url.trim());
-
-    // 3. Create insert requests
-    let requests = [];
-    imageUrls.forEach((url, index) => {
-      if (index !== 0) {
-        requests.push({ insertParagraph: { location: { index: 1 }, paragraph: { elements: [{ textRun: { content: '\n' } }] } } });
-      }
-      requests.push({
+    // Build requests to insert each image
+    const requests = urls.flatMap((url, index) => [
+      {
+        insertText: {
+          location: {
+            index: 1,
+          },
+          text: `Image ${index + 1}:\n`,
+        },
+      },
+      {
         insertInlineImage: {
+          location: {
+            index: 1,
+          },
           uri: url,
-          location: { index: 1 },
           objectSize: {
-            height: { magnitude: 300, unit: 'PT' },
-            width: { magnitude: 300, unit: 'PT' },
+            height: { magnitude: 200, unit: 'PT' },
+            width: { magnitude: 200, unit: 'PT' },
           },
         },
-      });
-    });
+      },
+      {
+        insertText: {
+          location: {
+            index: 1,
+          },
+          text: '\n\n',
+        },
+      },
+    ]);
 
-    // 4. Batch update to insert images
     await docs.documents.batchUpdate({
       documentId: docId,
-      requestBody: { requests },
-    });
-
-    // 5. Make document public
-    await drive.permissions.create({
-      fileId: docId,
       requestBody: {
-        role: 'reader',
-        type: 'anyone',
+        requests,
       },
     });
 
-    // 6. Get shareable link
-    const file = await drive.files.get({
-      fileId: docId,
-      fields: 'webViewLink',
-    });
-
-    return res.json({ doc_link: file.data.webViewLink });
+    const publicDocLink = `https://docs.google.com/document/d/${docId}/edit`;
+    res.json({ message: '✅ Images added to Google Doc!', link: publicDocLink });
   } catch (err) {
-    console.error('❌ Error:', err.message);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error('❌ Error in /upload:', err);
+    res.status(500).json({ error: 'Something went wrong.' });
   }
 });
 
-// Run
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+app.get('/', (req, res) => {
+  res.send('✅ Google Docs Uploader is live!');
 });
+
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
+});
+
