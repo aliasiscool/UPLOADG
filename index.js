@@ -1,8 +1,8 @@
-const express = require('express');
-const { google } = require('googleapis');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const fs = require('fs');
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const { google } = require("googleapis");
+const fs = require("fs");
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -10,90 +10,76 @@ const port = process.env.PORT || 10000;
 app.use(cors());
 app.use(bodyParser.json());
 
+// Load service account key
 const auth = new google.auth.GoogleAuth({
-  keyFile: 'service-account.json', // your service account JSON key
-  scopes: ['https://www.googleapis.com/auth/documents'],
+  keyFile: "service-account.json",
+  scopes: ["https://www.googleapis.com/auth/documents"],
 });
 
-const docs = google.docs({ version: 'v1', auth });
-
-app.post('/upload', async (req, res) => {
+app.post("/upload", async (req, res) => {
   try {
-    console.log('📥 Incoming request:', req.body);
+    const { image_urls_combined } = req.body;
 
-    const urlsRaw = req.body.image_urls_combined;
-    if (!urlsRaw || typeof urlsRaw !== 'string') {
-      return res.status(400).json({ error: 'Missing or invalid image_urls_combined field' });
+    if (!image_urls_combined) {
+      return res.status(400).json({ error: "Missing image_urls_combined" });
     }
 
-    const urls = urlsRaw.split(',').map(url => url.trim()).filter(Boolean);
-    if (!urls.length) {
-      return res.status(400).json({ error: 'No valid image URLs provided' });
-    }
+    const imageUrls = image_urls_combined.split(",").map(url => url.trim());
 
-    const docTitle = `Uploaded Images (${new Date().toLocaleString()})`;
+    const authClient = await auth.getClient();
+    const docs = google.docs({ version: "v1", auth: authClient });
 
-    // Create the doc
-    const createRes = await docs.documents.create({
+    // Create a new document
+    const doc = await docs.documents.create({
       requestBody: {
-        title: docTitle,
+        title: "Uploaded Images",
       },
     });
 
-    const docId = createRes.data.documentId;
+    const documentId = doc.data.documentId;
 
-    // Build requests to insert each image
-    const requests = urls.flatMap((url, index) => [
-      {
-        insertText: {
-          location: {
-            index: 1,
-          },
-          text: `Image ${index + 1}:\n`,
-        },
-      },
-      {
-        insertInlineImage: {
-          location: {
-            index: 1,
-          },
-          uri: url,
-          objectSize: {
-            height: { magnitude: 200, unit: 'PT' },
-            width: { magnitude: 200, unit: 'PT' },
+    // Build the requests array with embedded images
+    const requests = [];
+
+    for (let url of imageUrls) {
+      requests.push(
+        {
+          insertText: {
+            location: { index: 1 },
+            text: "\n\n",
           },
         },
-      },
-      {
-        insertText: {
-          location: {
-            index: 1,
+        {
+          insertInlineImage: {
+            uri: url,
+            location: {
+              index: 1,
+            },
+            objectSize: {
+              height: { magnitude: 300, unit: "PT" },
+              width: { magnitude: 300, unit: "PT" },
+            },
           },
-          text: '\n\n',
-        },
-      },
-    ]);
+        }
+      );
+    }
 
     await docs.documents.batchUpdate({
-      documentId: docId,
-      requestBody: {
-        requests,
-      },
+      documentId,
+      requestBody: { requests },
     });
 
-    const publicDocLink = `https://docs.google.com/document/d/${docId}/edit`;
-    res.json({ message: '✅ Images added to Google Doc!', link: publicDocLink });
-  } catch (err) {
-    console.error('❌ Error in /upload:', err);
-    res.status(500).json({ error: 'Something went wrong.' });
-  }
-});
+    const docLink = `https://docs.google.com/document/d/${documentId}/edit`;
 
-app.get('/', (req, res) => {
-  res.send('✅ Google Docs Uploader is live!');
+    res.json({ success: true, docLink });
+  } catch (err) {
+    console.error("❌ Error in /upload:", err.message);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
 });
+
 
